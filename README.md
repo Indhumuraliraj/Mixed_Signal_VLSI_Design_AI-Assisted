@@ -9,7 +9,7 @@ This repository documents my work on the physical design of a mixed-signal ASIC 
 
 ### TASK-1 — Digital VLSI and RTL-to-GDS Foundation
 
-* [Task & Concept Clarity](TASK-1/Task&ConceptClarity)
+* [Task & Concept Clarity](TASK-1/Task & Concept Clearity)
 * [Prompts](TASK-1/Prompts)
 * [AI-Generated Files](TASK-1/AI-GeneratedFiles)
 * [Practical Implementation](TASK-1/PracticalImplementation)
