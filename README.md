@@ -404,11 +404,15 @@ inputs, executing the physical-design flow.
 ### TASK-2 — Analog 2×1 MUX Physical Design
 
 <details>
-<summary>Task & Concept Clarity</summary>
+<summary>Theory</summary>
 </details>
 
 <details>
 <summary>Prompts</summary>
+</details>
+
+<details>
+<summary>AI-Generated Files</summary>
 </details>
 
 <details>
