@@ -389,6 +389,69 @@ inputs, executing the physical-design flow.
 <details>
 <summary>AI-Generated Files</summary>
 
+The following files were generated or developed with AI assistance based
+on the reference repository and the requirements of the mixed-signal
+physical-design flow.
+
+### AI-Generated Files
+
+### Design Files
+
+| File | Description |
+|---|---|
+| `design_mux.v` | Top-level Verilog module integrating the digital control logic with the `AMUX2_3V` analog macro. |
+| `raven_spi.v` | Digital SPI controller and register block used to generate the MUX control signal. |
+| `spi_slave.v` | Low-level SPI slave module used by the digital control system. |
+| `AMUX2_3V.v` | Verilog blackbox representation of the analog 2:1 multiplexer. |
+
+### Physical Design Files
+
+| File | Description |
+|---|---|
+| `AMUX2_3V.lef` | Abstract physical view of the analog macro used during placement and routing. |
+| `AMUX2_3V.lib` | Timing and functional abstraction of the analog macro. |
+| `AMUX2_3V.gds` | Physical layout representation of the analog macro used for final layout integration. |
+
+### Configuration Files
+
+| File | Description |
+|---|---|
+| `config.json` | OpenLane configuration for the `design_mux` physical-design flow. |
+| `macro.cfg` | Configuration used for analog macro placement and integration. |
+
+### File-wise Observation
+
+| File Type | File | What to Observe |
+|---|---|---|
+| `.v` | `design_mux.v` | Observe the top-level module name, input/output ports, signal connectivity and instantiation of the analog macro. |
+| `.v` | `raven_spi.v` | Observe the SPI register/control logic, address decoding, data handling and generation of the MUX select signal. |
+| `.v` | `spi_slave.v` | Observe the SPI protocol implementation, command/address/data states, clock handling and data transfer. |
+| `.v` | `AMUX2_3V.v` | Observe the macro name, exact port definitions and blackbox declaration. The internal analog implementation should not be synthesized as digital RTL. |
+| `.lef` | `AMUX2_3V.lef` | Observe the macro size, cell name, pin names, pin locations, metal layers, routing information and obstructions. |
+| `.lib` | `AMUX2_3V.lib` | Observe the cell definition, input/output pins, direction, signal type, timing information and functional description. |
+| `.gds` | `AMUX2_3V.gds` | Observe the actual physical layout, layer information, macro dimensions, pins and geometry used for final layout integration. |
+| `.json` | `config.json` | Observe the top-level design name, Verilog sources, LEF/GDS references, macro definitions, PDK settings and OpenLane configuration parameters. |
+| `.tcl` | `config.tcl` | Observe the OpenLane variables, design configuration, macro integration settings, floorplan parameters and physical-design options. |
+| `.cfg` | `macro.cfg` | Observe the macro name, placement coordinates and orientation used for fixed macro placement. |
+
+### Overall Observation
+
+The generated files were examined according to their role in the
+RTL-to-GDSII flow.
+
+- `.v` files were checked for logical design and connectivity.
+- `.lef` was checked for physical macro abstraction.
+- `.lib` was checked for timing and functional information.
+- `.gds` was checked for the actual physical layout.
+- `.json` and `.tcl` files were checked for design and OpenLane
+  configuration.
+- `.cfg` was checked for macro placement information.
+
+The main observation was that all views of the analog macro must remain
+consistent in terms of macro name, port names, dimensions and physical
+connectivity for successful mixed-signal integration.
+
+
 </details>
 
 <details>
