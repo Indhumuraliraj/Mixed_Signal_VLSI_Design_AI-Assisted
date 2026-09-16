@@ -47,6 +47,8 @@ developed using different design methodologies. The analog block may be
 created as a transistor-level or custom layout, while the digital block
 is described using RTL and implemented using standard cells.
 
+![Image}()
+
 The overall workflow is:
 ```text
                     System Specification
@@ -78,12 +80,12 @@ The overall workflow is:
                           GDSII
 ```
 
-
+---
 
 ### Project (2x1 mux)
 
-This project implements a mixed-signal system in which a 2:1 analog
-multiplexer (`AMUX2_3V`) is integrated with a digital SPI-based control
+The project implements a mixed-signal system in which a 2:1 analog
+multiplexer (`AMUX2_3V`) is integrated with a digital SPI (Serial Peripheral Interface)-based control
 block. The analog multiplexer selects one of two analog input signals
 (`I0` or `I1`) based on the digital select signal and provides the selected
 signal at the output.
@@ -92,6 +94,8 @@ The digital SPI controller provides the control interface for the analog
 MUX. The analog macro is represented as a hard macro during synthesis and
 physical implementation, while its physical and layout information is
 provided through the required macro views.
+
+![Image}()
 
 The overall project workflow is:
 
@@ -154,9 +158,7 @@ as a fixed analog hard macro.
 
 ## AI-Assisted Prompts
 
-AI was used throughout the task to analyze the reference repository,
-understand the mixed-signal physical-design flow, generate the required
-input files and assist in completing the physical-design implementation.
+AI was used throughout the task to analyze the reference repository, understand the mixed-signal physical-design flow, generate the required analog and digital design files, prepare the `AMUX2_3V` hard macro views, and assist with integrating the analog macro with the digital SPI controller.
 
 ---
 
@@ -172,20 +174,30 @@ Identify:
 1. The purpose of the project.
 2. The function of each important file.
 3. The role of the AMUX2_3V analog macro.
-4. How the analog macro is integrated with the digital design.
+4. How the analog macro is integrated with the digital SPI design.
 5. The required input files for the physical-design flow.
 6. The sequence of tools and stages used to generate the final layout.
 ```
 
 #### Outcome
 
-The repository structure, design methodology, important files and overall
-mixed-signal RTL-to-GDSII flow were understood.
+The repository structure, design methodology, important files, and overall mixed-signal RTL-to-GDSII flow were understood.
 
-#### Observation
+#### Files Identified
 
-The analysis showed that the analog macro requires different views such as
-Verilog, LEF, LIB and GDS for integration into the physical-design flow.
+```text
+design_mux.v
+raven_spi.v
+spi_slave.v
+AMUX2_3V.v
+AMUX2_3V.mag
+AMUX2_3V.spice
+AMUX2_3V.lef
+AMUX2_3V.lib
+AMUX2_3V.gds
+config.json
+macro.cfg
+```
 
 ---
 
@@ -207,43 +219,147 @@ For each file provide:
 
 #### Outcome
 
-The required RTL, analog macro, LEF, LIB, GDS, OpenLane configuration
-and macro-placement files were identified.
+The required RTL, SPI digital design files, analog macro views, OpenLane configuration, and macro-placement files were identified.
 
-#### Observation
+#### Files Identified
 
-Each file has a specific role in the flow. The logical, physical, timing
-and layout information must remain consistent across all macro views.
+| File             | Format  | Purpose                       |
+| ---------------- | ------- | ----------------------------- |
+| `raven_spi.v`    | Verilog | SPI controller RTL            |
+| `spi_slave.v`    | Verilog | SPI slave/interface RTL       |
+| `design_mux.v`   | Verilog | Top-level integration         |
+| `AMUX2_3V.v`     | Verilog | Analog macro blackbox         |
+| `AMUX2_3V.mag`   | Magic   | Analog physical layout        |
+| `AMUX2_3V.spice` | SPICE   | Analog/post-layout simulation |
+| `AMUX2_3V.lef`   | LEF     | Physical abstract view        |
+| `AMUX2_3V.lib`   | Liberty | Timing/functional model       |
+| `AMUX2_3V.gds`   | GDSII   | Final physical macro layout   |
+| `config.json`    | JSON    | OpenLane configuration        |
+| `macro.cfg`      | Config  | Macro placement configuration |
 
 ---
 
-### Prompt 3: Generate Top-Level RTL
+### Prompt 3: Generate Digital SPI Controller
+
+#### Prompt
+
+```text
+Generate the Verilog RTL for the digital SPI controller used in the
+mixed-signal design.
+
+Create a file named raven_spi.v.
+
+The SPI controller should provide the required SPI control and data
+signals and should be suitable for integration with the AMUX2_3V analog
+macro.
+
+Maintain a synthesizable RTL coding style.
+
+Include:
+1. Clock and reset.
+2. SPI control logic.
+3. Serial data handling.
+4. Required SPI interface signals.
+5. Control signals required to connect with the analog AMUX.
+6. Proper module and port definitions.
+
+```
+
+#### Outcome
+
+The digital SPI controller RTL was generated and prepared for synthesis and physical-design integration.
+
+#### Generated File
+
+```text
+src/raven_spi.v
+```
+
+#### Observation
+
+The `raven_spi.v` file contains the synthesizable digital RTL of the SPI controller and provides the digital interface required for integration with the analog hard macro.
+
+---
+
+### Prompt 4: Generate SPI Slave RTL
+
+#### Prompt
+
+```text
+Generate the Verilog RTL for the SPI slave interface used in the project.
+
+Create a file named spi_slave.v.
+
+Include:
+1. SPI clock input.
+2. Chip-select input.
+3. Serial data input.
+4. Serial data output.
+5. Reset functionality.
+6. Shift-register based serial data transfer.
+7. Required control and data signals.
+8. Synthesizable Verilog RTL.
+
+Ensure that the module interface is compatible with the raven_spi.v
+controller and the top-level design.
+
+```
+
+#### Outcome
+
+The SPI slave RTL was generated for serial communication and integration with the digital controller.
+
+#### Generated File
+
+```text
+src/spi_slave.v
+```
+
+#### Observation
+
+The `spi_slave.v` module provides the SPI slave-side serial communication logic and can be integrated with the controller and top-level digital design.
+
+---
+
+### Prompt 5: Generate Top-Level RTL
 
 #### Prompt
 
 ```text
 Generate the required top-level Verilog file for the design_mux project.
 
-Instantiate the AMUX2_3V analog macro as a hard macro and maintain the
-required macro interface and signal connectivity.
+Create a file named design_mux.v.
+
+Integrate:
+1. The digital SPI controller.
+2. The SPI slave logic where required.
+3. The AMUX2_3V analog hard macro.
+4. Required clock and reset signals.
+5. SPI interface signals.
+6. AMUX control and data signals.
+
+Instantiate AMUX2_3V as a hard macro.
 
 Do not implement the internal analog circuitry in RTL.
 ```
 
 #### Outcome
 
-The top-level RTL required for integrating the analog macro with the
-digital design was generated.
+The top-level RTL required to integrate the digital SPI logic with the `AMUX2_3V` analog hard macro was generated.
+
+#### Generated File
+
+```text
+src/design_mux.v
+```
 
 #### Observation
 
-The top-level RTL provides the logical connection to the analog macro
-while allowing its physical implementation to remain as a separate hard
-macro.
+The top-level RTL provides the logical connectivity between the digital SPI design and the analog hard macro while keeping the analog implementation separate.
 
 ---
 
-### Prompt 4: Generate Analog Macro Blackbox
+### Prompt 6: Generate Analog Macro Blackbox
 
 #### Prompt
 
@@ -251,211 +367,742 @@ macro.
 Generate the Verilog blackbox model required for the AMUX2_3V analog
 hard macro.
 
-Use the exact macro module name and port names required by the reference
-design. The blackbox should contain only the macro interface and should
-not contain the internal analog implementation.
+Create a file named AMUX2_3V.v.
+
+Use the exact macro module name and required port names.
+
+The blackbox should contain only:
+1. Module declaration.
+2. Input ports.
+3. Output ports.
+4. Power and ground ports.
+
+Do not include the internal analog implementation.
 ```
 
 #### Outcome
 
-The `AMUX2_3V` blackbox Verilog file was generated.
+The `AMUX2_3V` Verilog blackbox was generated for hard-macro integration.
+
+#### Generated File
+
+```text
+src/AMUX2_3V.v
+```
 
 #### Observation
 
-The blackbox allows synthesis and OpenLane to recognize the analog macro
-without synthesizing its internal analog circuitry.
+The blackbox allows synthesis and OpenLane to recognize the analog macro without synthesizing its internal transistor-level implementation.
 
 ---
 
-### Prompt 5: Generate LEF and Physical Macro Information
+### Prompt 7: Generate AMUX2_3V MAG Layout
 
 #### Prompt
 
 ```text
-Explain and generate the required procedure to create the AMUX2_3V LEF
-abstract view from the analog layout.
+Analyze the AMUX2_3V analog macro layout requirements and provide the
+procedure to create the final Magic (.mag) layout file.
 
-Include the required macro dimensions, pins, layers, routing information
-and obstructions needed by OpenLane for physical implementation.
+Create the layout file AMUX2_3V.mag.
+
+Ensure that:
+1. The macro has the required dimensions.
+2. All signal and power pins are correctly defined.
+3. SKY130A-compatible layers are used.
+4. Layout connectivity matches the analog design.
+5. The macro is suitable for DRC and LVS.
+6. The layout can be extracted for post-layout simulation.
 ```
 
 #### Outcome
 
-The required LEF generation procedure and physical macro information were
-obtained.
+The transistor-level physical layout of the `AMUX2_3V` analog macro was prepared in Magic.
+
+#### Generated File
+
+```text
+macros/AMUX2_3V.mag
+```
 
 #### Observation
 
-The LEF provides the abstract physical representation required for
-floorplanning, placement and routing.
+The `.mag` file represents the physical transistor-level implementation of the analog macro and serves as the source for generating other physical views.
 
 ---
 
-### Prompt 6: Generate LIB and Timing Information
+### Prompt 8: Generate Extracted SPICE
 
 #### Prompt
 
 ```text
-Generate or explain the required Liberty model for AMUX2_3V.
+Using the completed AMUX2_3V Magic layout, provide the procedure to
+extract the post-layout SPICE netlist.
 
-Identify the required cell, pin, functional and timing information needed
-to integrate the macro into the OpenLane physical-design flow.
+Generate the extracted SPICE representation from AMUX2_3V.mag.
+
+Ensure that:
+1. Devices are extracted correctly.
+2. Physical interconnections are represented.
+3. The extracted netlist preserves circuit connectivity.
+4. The netlist can be simulated using ngspice.
+5. The extracted netlist can be used for post-layout verification.
 ```
 
 #### Outcome
 
-The required LIB information for the analog macro was generated and
-prepared for integration.
+The post-layout SPICE representation was extracted from the Magic layout.
+
+#### Generated File
+
+```text
+macros/AMUX2_3V.spice
+```
 
 #### Observation
 
-The LIB provides the timing and functional abstraction required by the
-digital implementation tools.
+The extracted SPICE netlist connects the physical layout with post-layout electrical simulation.
 
 ---
 
-### Prompt 7: Generate OpenLane Configuration
+### Prompt 9: Generate LEF from MAG Layout
 
 #### Prompt
 
 ```text
-Generate the OpenLane configuration required for the design_mux project.
+Using the completed AMUX2_3V.mag layout, generate the LEF abstract view.
+
+Create AMUX2_3V.lef.
 
 Include:
-1. Top-level Verilog
-2. AMUX2_3V LEF
-3. AMUX2_3V LIB
-4. AMUX2_3V GDS
-5. Macro placement configuration
-6. SKY130 PDK settings
-7. Required die and core parameters.
+1. Macro name.
+2. Macro width and height.
+3. Input/output pins.
+4. Power and ground pins.
+5. Pin directions.
+6. Correct routing layers.
+7. Pin geometries.
+8. Macro boundary.
+9. Routing obstructions.
+10. SKY130-compatible layer information.
 
-Ensure that the AMUX2_3V is treated as a hard macro.
+Ensure that the LEF accurately represents the physical interface of the
+AMUX2_3V hard macro for OpenLane floorplanning, placement and routing.
 ```
 
 #### Outcome
 
-The OpenLane configuration and macro-placement configuration required
-for the project were generated.
+The LEF abstract view of the analog hard macro was generated from the physical layout.
+
+#### Generated File
+
+```text
+lef/AMUX2_3V.lef
+```
 
 #### Observation
 
-Correct file paths, macro names and physical dimensions are critical for
-successful macro integration.
+The LEF provides the abstract physical representation required by OpenLane for macro placement and routing.
 
 ---
 
-### Prompt 8: Complete Physical-Design Flow
+### Prompt 10: Generate Liberty Model
 
 #### Prompt
 
 ```text
-Using the generated design files and OpenLane configuration, provide the
-complete sequence of commands required to perform the physical-design flow.
+Prepare the Liberty model for the AMUX2_3V analog hard macro.
+
+Create AMUX2_3V.lib.
 
 Include:
-1. Synthesis
-2. Floorplanning
-3. Placement
-4. PDN generation
-5. CTS
-6. Routing
-7. DRC
-8. LVS
-9. GDSII generation.
+1. Cell definition.
+2. All macro pins.
+3. Pin directions.
+4. Power and ground pins.
+5. Functional information where applicable.
+6. Required timing information.
+7. Pin names matching the Verilog blackbox and LEF.
 
-Explain the expected output of each stage.
+Ensure that the LIB is consistent with the AMUX2_3V macro interface and
+can be used by the digital physical-design flow.
 ```
 
 #### Outcome
 
-The required physical-design commands and execution sequence were
-generated.
+The Liberty functional/timing abstraction for the analog hard macro was prepared for OpenLane integration.
+
+#### Generated File
+
+```text
+lib/AMUX2_3V.lib
+```
 
 #### Observation
 
-The physical-design stages were executed sequentially, with the output
-of each stage used as the input for the next stage.
+The Liberty model provides the logical and timing abstraction required by the digital implementation tools.
 
 ---
 
-AI was therefore used not only for generating code, but also for
-understanding the reference implementation, preparing the required
-inputs, executing the physical-design flow.
+### Prompt 11: Generate GDSII from MAG Layout
+
+#### Prompt
+
+```text
+Using the verified AMUX2_3V.mag layout, generate the final GDSII physical
+layout.
+
+Create AMUX2_3V.gds.
+
+Ensure that:
+1. SKY130A layer mappings are correct.
+2. Complete macro geometry is included.
+3. Pin locations are preserved.
+4. Macro dimensions remain consistent.
+5. The GDS can be integrated into the OpenLane flow.
+```
+
+#### Outcome
+
+The final physical GDSII representation of the analog hard macro was generated.
+
+#### Generated File
+
+```text
+gds/AMUX2_3V.gds
+```
+
+#### Observation
+
+The GDSII contains the detailed physical geometry required for final-chip integration.
+
 ---
 
-</details>
+### Prompt 12: Cross-View Consistency Check
 
-<details>
-<summary>AI-Generated Files</summary>
+#### Prompt
 
-The following files were generated or developed with AI assistance based
-on the reference repository and the requirements of the mixed-signal
-physical-design flow.
+```text
+Check the consistency of all AMUX2_3V macro views.
 
-### AI-Generated Files
+Compare:
+1. AMUX2_3V.v
+2. AMUX2_3V.mag
+3. Extracted AMUX2_3V.spice
+4. AMUX2_3V.lef
+5. AMUX2_3V.lib
+6. AMUX2_3V.gds
 
-### Design Files
+Verify:
+- Macro name.
+- Pin names.
+- Pin directions.
+- Power and ground connections.
+- Macro dimensions.
+- Pin locations.
+- Logical connectivity.
+- Physical connectivity.
 
-| File | Description |
-|---|---|
-| `design_mux.v` | Top-level Verilog module integrating the digital control logic with the `AMUX2_3V` analog macro. |
-| `raven_spi.v` | Digital SPI controller and register block used to generate the MUX control signal. |
-| `spi_slave.v` | Low-level SPI slave module used by the digital control system. |
-| `AMUX2_3V.v` | Verilog blackbox representation of the analog 2:1 multiplexer. |
+Identify any inconsistencies that could cause DRC, LVS, routing,
+timing or OpenLane integration failures.
+```
 
-### Physical Design Files
+#### Outcome
 
-| File | Description |
-|---|---|
-| `AMUX2_3V.lef` | Abstract physical view of the analog macro used during placement and routing. |
-| `AMUX2_3V.lib` | Timing and functional abstraction of the analog macro. |
-| `AMUX2_3V.gds` | Physical layout representation of the analog macro used for final layout integration. |
+The different logical, physical, timing, and layout views of the `AMUX2_3V` hard macro were cross-checked before OpenLane integration.
 
-### Configuration Files
+#### Observation
 
-| File | Description |
-|---|---|
-| `config.json` | OpenLane configuration for the `design_mux` physical-design flow. |
-| `macro.cfg` | Configuration used for analog macro placement and integration. |
+Consistency between **Verilog, MAG, SPICE, LEF, LIB, and GDS** is essential for successful mixed-signal hard-macro integration.
 
-### File-wise Observation
+---
 
-| File Type | File | What to Observe |
-|---|---|---|
-| `.v` | `design_mux.v` | Observe the top-level module name, input/output ports, signal connectivity and instantiation of the analog macro. |
-| `.v` | `raven_spi.v` | Observe the SPI register/control logic, address decoding, data handling and generation of the MUX select signal. |
-| `.v` | `spi_slave.v` | Observe the SPI protocol implementation, command/address/data states, clock handling and data transfer. |
-| `.v` | `AMUX2_3V.v` | Observe the macro name, exact port definitions and blackbox declaration. The internal analog implementation should not be synthesized as digital RTL. |
-| `.lef` | `AMUX2_3V.lef` | Observe the macro size, cell name, pin names, pin locations, metal layers, routing information and obstructions. |
-| `.lib` | `AMUX2_3V.lib` | Observe the cell definition, input/output pins, direction, signal type, timing information and functional description. |
-| `.gds` | `AMUX2_3V.gds` | Observe the actual physical layout, layer information, macro dimensions, pins and geometry used for final layout integration. |
-| `.json` | `config.json` | Observe the top-level design name, Verilog sources, LEF/GDS references, macro definitions, PDK settings and OpenLane configuration parameters. |
-| `.tcl` | `config.tcl` | Observe the OpenLane variables, design configuration, macro integration settings, floorplan parameters and physical-design options. |
-| `.cfg` | `macro.cfg` | Observe the macro name, placement coordinates and orientation used for fixed macro placement. |
+### Prompt 13: Generate OpenLane Configuration
 
-### Overall Observation
+#### Prompt
 
-The generated files were examined according to their role in the
-RTL-to-GDSII flow.
+```text
+Generate the OpenLane configuration for the design_mux project.
 
-- `.v` files were checked for logical design and connectivity.
-- `.lef` was checked for physical macro abstraction.
-- `.lib` was checked for timing and functional information.
-- `.gds` was checked for the actual physical layout.
-- `.json` and `.tcl` files were checked for design and OpenLane
-  configuration.
-- `.cfg` was checked for macro placement information.
+Create the required configuration files.
 
-The main observation was that all views of the analog macro must remain
-consistent in terms of macro name, port names, dimensions and physical
-connectivity for successful mixed-signal integration.
+Include:
+1. Top-level Verilog files.
+2. AMUX2_3V blackbox Verilog.
+3. AMUX2_3V LEF.
+4. AMUX2_3V LIB.
+5. AMUX2_3V GDS.
+6. Macro placement configuration.
+7. SKY130A PDK settings.
+8. Die and core parameters.
+9. Clock configuration.
+10. Hard-macro placement information.
+
+Ensure that AMUX2_3V is treated as a hard macro and that all views are
+correctly linked to the top-level digital design.
+```
+
+#### Outcome
+
+The OpenLane configuration and macro-placement files required for the mixed-signal RTL-to-GDSII flow were prepared.
+
+#### Generated Files
+
+```text
+config.json
+cfg/macro.cfg
+```
+
+#### Observation
+
+Correct file paths, macro names, pin definitions, dimensions, and placement coordinates are critical for successful hard-macro integration.
+
+---
+
+## Overall Flow
+
+```text
+Reference Repository Analysis
+            ↓
+Identify Required Files
+            ↓
+Digital RTL Generation
+            ↓
+ ┌─────────────────────────────┐
+ │ raven_spi.v                 │
+ │ spi_slave.v                 │
+ │ design_mux.v                │
+ └──────────────┬──────────────┘
+                ↓
+       AMUX2_3V Blackbox
+          AMUX2_3V.v
+                ↓
+       AMUX2_3V MAG Layout
+          AMUX2_3V.mag
+                ↓
+        ┌───────┼────────┐
+        ↓       ↓        ↓
+      SPICE    LEF      GDSII
+        ↓       ↓        ↓
+     .spice    .lef     .gds
+                ↓
+        LIB / Timing Model
+          AMUX2_3V.lib
+                ↓
+      Cross-View Validation
+                ↓
+       OpenLane Configuration
+                ↓
+       Macro Placement
+                ↓
+       RTL-to-GDSII Flow
+                ↓
+          DRC / LVS / STA
+                ↓
+           Final GDSII
+```
 
 
+> Important Note: AI-generated outputs may contain errors, incorrect assumptions, or implementation mistakes. All AI-generated code, layout information, configuration files, and recommendations must therefore be reviewed, verified, corrected, and validated using the appropriate EDA tools, simulations, DRC, LVS, STA, and the SKY130A PDK before being used in the final design flow. AI was used as an assistance and development tool, while final design decisions and verification were performed by the designer.
+
+---
 </details>
 
 <details>
 <summary>Practical Implementation</summary>
+
+### 1. Environment Setup
+
+The mixed-signal physical-design flow was implemented using the following tools and technologies:
+
+* **OS:** Ubuntu Linux
+* **PDK:** SKY130A
+* **Analog Simulation:** Xschem / ngspice
+* **Layout:** Magic
+* **LVS:** Netgen
+* **Digital RTL Simulation:** Icarus Verilog
+* **Physical Design:** OpenLane / OpenROAD
+* **Layout Viewer:** KLayout
+* **HDL:** Verilog
+* **Scripting/Configuration:** Tcl, JSON
+
+---
+
+### 2. Project Structure
+
+The project was organized into digital RTL, analog macro, physical views, and OpenLane configuration files.
+
+```text
+design_mux/
+│
+├── src/
+│   ├── design_mux.v
+│   ├── raven_spi.v
+│   ├── spi_slave.v
+│   └── AMUX2_3V.v
+│
+├── macros/
+│   ├── AMUX2_3V.mag
+│   └── AMUX2_3V.spice
+│
+├── lef/
+│   └── AMUX2_3V.lef
+│
+├── lib/
+│   └── AMUX2_3V.lib
+│
+├── gds/
+│   └── AMUX2_3V.gds
+│
+├── cfg/
+│   └── macro.cfg
+│
+└── config.json
+```
+
+---
+
+### 3. Digital RTL Implementation
+
+The digital portion of the design was implemented using Verilog RTL.
+
+The main digital files are:
+
+```text
+src/raven_spi.v
+src/spi_slave.v
+src/design_mux.v
+```
+
+#### `raven_spi.v`
+
+Implements the SPI controller logic and generates the required control and data signals.
+
+#### `spi_slave.v`
+
+Implements the SPI slave-side serial communication logic, including serial data transfer and control.
+
+#### `design_mux.v`
+
+Acts as the top-level integration module and connects the digital SPI logic with the `AMUX2_3V` analog hard macro.
+
+The digital RTL was checked for syntax and functionality before proceeding to physical implementation.
+
+---
+
+### 4. AMUX2_3V Analog Macro
+
+The `AMUX2_3V` block was implemented as an analog 2:1 multiplexer and integrated as a hard macro.
+
+The analog macro provides:
+
+```text
+I0      → Input 0
+I1      → Input 1
+select  → Selection control
+out     → Selected output
+VPWR    → Power
+VGND    → Ground
+```
+
+The macro was treated separately from the digital RTL because its internal implementation is transistor-level analog circuitry.
+
+---
+
+### 5. Analog Simulation
+
+The analog design was simulated using **ngspice** before physical implementation.
+
+The simulation flow was used to verify:
+
+* Functional behaviour of the 2:1 multiplexer.
+* Selection of `I0` when `select = 0`.
+* Selection of `I1` when `select = 1`.
+* Output transition behaviour.
+* Power and ground connectivity.
+
+Example simulation flow:
+
+```text
+Schematic
+   ↓
+SPICE Netlist
+   ↓
+ngspice
+   ↓
+Transient Simulation
+   ↓
+Waveform Verification
+```
+
+Both select states were verified before proceeding to layout.
+
+---
+
+### 6. AMUX2_3V Physical Layout
+
+The transistor-level physical layout was created using **Magic**.
+
+Generated layout:
+
+```text
+macros/AMUX2_3V.mag
+```
+
+The layout includes:
+
+* Transistor geometries.
+* Metal interconnections.
+* Input/output pins.
+* Power and ground connections.
+* Required SKY130A layers.
+* Macro boundary.
+
+The layout was checked using Magic DRC before generating the abstract physical views.
+
+---
+
+### 7. DRC Verification
+
+Design Rule Check (DRC) was performed on the `AMUX2_3V` layout.
+
+The purpose of DRC was to verify that the physical layout follows the design rules of the SKY130A PDK.
+
+```text
+AMUX2_3V.mag
+      ↓
+   Magic DRC
+      ↓
+DRC Verification
+```
+
+The layout was iteratively modified whenever physical design-rule violations were identified.
+
+---
+
+### 8. LVS Verification
+
+Layout Versus Schematic (LVS) was performed using **Netgen**.
+
+The extracted layout netlist was compared against the reference schematic/SPICE netlist.
+
+```text
+Schematic/SPICE
+      ↓
+    Netgen
+      ↑
+Extracted Layout
+```
+
+LVS was used to verify:
+
+* Device correspondence.
+* Net connectivity.
+* Pin correspondence.
+* Power and ground connectivity.
+* Overall circuit topology.
+
+---
+
+### 9. Post-Layout SPICE Extraction
+
+After the physical layout was prepared, the layout was extracted to generate the post-layout SPICE representation.
+
+Generated file:
+
+```text
+macros/AMUX2_3V.spice
+```
+
+The extracted netlist was simulated using ngspice to verify that the physical implementation retained the expected electrical behaviour.
+
+```text
+AMUX2_3V.mag
+      ↓
+Magic Extraction
+      ↓
+AMUX2_3V.spice
+      ↓
+ngspice
+      ↓
+Post-Layout Verification
+```
+
+---
+
+### 10. LEF Generation
+
+The abstract physical representation of the analog macro was generated as a LEF file.
+
+Generated file:
+
+```text
+lef/AMUX2_3V.lef
+```
+
+The LEF contains the information required by the digital physical-design tools, including:
+
+* Macro dimensions.
+* Pin locations.
+* Pin names.
+* Routing layers.
+* Blockages/obstructions.
+* Macro boundary.
+
+The LEF allows OpenLane/OpenROAD to treat `AMUX2_3V` as a physical hard macro during floorplanning and routing.
+
+---
+
+### 11. Liberty Model
+
+A Liberty model was prepared for the analog macro.
+
+Generated file:
+
+```text
+lib/AMUX2_3V.lib
+```
+
+The Liberty model provides the digital implementation flow with the required cell, pin, functional, and timing abstraction.
+
+The following information was kept consistent:
+
+```text
+Verilog Pin Names
+       ↕
+LEF Pin Names
+       ↕
+LIB Pin Names
+       ↕
+GDS/MAG Physical Pins
+```
+
+---
+
+### 12. GDSII Generation
+
+The final physical representation of the `AMUX2_3V` macro was generated in GDSII format.
+
+Generated file:
+
+```text
+gds/AMUX2_3V.gds
+```
+
+The GDSII contains the detailed physical geometry of the analog macro and is used for final physical integration.
+
+---
+
+### 13. Hard Macro Integration
+
+The generated analog views were integrated into the digital OpenLane flow.
+
+The major macro views are:
+
+```text
+AMUX2_3V.v       → Logical abstraction
+AMUX2_3V.mag     → Transistor-level layout
+AMUX2_3V.spice   → Extracted electrical representation
+AMUX2_3V.lef     → Physical abstract
+AMUX2_3V.lib     → Timing/functional abstraction
+AMUX2_3V.gds     → Physical layout
+```
+
+These views were integrated with:
+
+```text
+raven_spi.v
+      +
+spi_slave.v
+      +
+design_mux.v
+      +
+AMUX2_3V hard macro
+```
+
+---
+
+### 14. OpenLane Configuration
+
+OpenLane was configured to recognize `AMUX2_3V` as a hard macro.
+
+Important configuration files:
+
+```text
+config.json
+cfg/macro.cfg
+```
+
+The configuration includes:
+
+* Top-level design name.
+* RTL source files.
+* PDK configuration.
+* LEF files.
+* LIB files.
+* GDS files.
+* Macro placement.
+* Die/core dimensions.
+* Clock configuration.
+* Macro-related settings.
+
+---
+
+### 15. RTL-to-GDSII Physical Design
+
+The complete digital physical-design flow was executed using OpenLane.
+
+```text
+Verilog RTL
+     ↓
+Synthesis
+     ↓
+Floorplanning
+     ↓
+Macro Placement
+     ↓
+Power Planning
+     ↓
+Placement
+     ↓
+CTS
+     ↓
+Routing
+     ↓
+Parasitic Extraction
+     ↓
+STA
+     ↓
+DRC
+     ↓
+LVS
+     ↓
+Final GDSII
+```
+
+The `AMUX2_3V` analog macro was preserved as a hard macro throughout the digital physical-design flow.
+
+---
+
+### 16. Final Verification
+
+The final implementation was checked using multiple verification stages.
+
+| Verification           | Purpose                                    |
+| ---------------------- | ------------------------------------------ |
+| RTL Simulation         | Verify digital functionality               |
+| ngspice Simulation     | Verify analog functionality                |
+| Magic DRC              | Check layout design rules                  |
+| Netgen LVS             | Check layout-versus-schematic connectivity |
+| Post-Layout Simulation | Verify extracted physical implementation   |
+| STA                    | Check timing constraints                   |
+| OpenLane Signoff       | Verify physical implementation             |
+
+---
+
+</details>
+
+  
 </details>
 
 <details>
@@ -472,10 +1119,6 @@ connectivity for successful mixed-signal integration.
 
 <details>
 <summary>Prompts</summary>
-</details>
-
-<details>
-<summary>AI-Generated Files</summary>
 </details>
 
 <details>
