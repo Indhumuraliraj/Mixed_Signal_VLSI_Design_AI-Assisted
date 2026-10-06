@@ -13,9 +13,9 @@ This repository documents my work on the physical design of a mixed-signal ASIC 
 |---|---|
 | **Claude / Sonnet 5** | Used to understand the reference repository, generate Verilog, OpenLane configuration files, Tcl/shell scripts, simulation commands, and assist with debugging physical-design errors. |
 | **Linux / Ubuntu** | Used as the main development environment for running OpenLane, Magic, Netgen, ngspice and other VLSI tools. |
-| **OpenLane** | Used to automate the RTL-to-GDSII physical-design flow including synthesis, floorplanning, placement, CTS, routing and final layout generation. |
 | **SKY130 PDK** | Provided the semiconductor process design kit, technology files, standard-cell libraries and process-specific information required for physical implementation. |
 | **Yosys** | Used for RTL synthesis and conversion of the digital Verilog design into a gate-level representation. |
+| **OpenLane** | Used to automate the RTL-to-GDSII physical-design flow including synthesis, floorplanning, placement, CTS, routing and final layout generation. |
 | **OpenROAD** | Used for automated physical-design stages such as floorplanning, placement, clock-tree synthesis, routing and related optimization. |
 | **Magic** | Used for layout viewing, physical verification, DRC checking, extraction and generation/processing of the analog macro physical views. |
 | **Netgen** | Used for Layout-versus-Schematic (LVS) verification by comparing the extracted layout connectivity with the reference circuit/netlist. |
@@ -1108,67 +1108,6 @@ The final implementation was checked using multiple verification stages.
 <details>
 <summary>Bugs & Debugs</summary>
 </details>
-
----
-
-### TASK-2 — Analog 2×1 MUX Physical Design
-
-<details>
-<summary>Theory</summary>
-</details>
-
-<details>
-<summary>Prompts</summary>
-</details>
-
-<details>
-<summary>Practical Implementation</summary>
-</details>
-
-<details>
-<summary>Bugs & Debugs</summary>
-</details>
-
----
-
-### TASK-3 — Digital SPI Controller Physical Design
-
-<details>
-<summary>Task & Concept Clarity</summary>
-</details>
-
-<details>
-<summary>Prompts</summary>
-</details>
-
-<details>
-<summary>Practical Implementation</summary>
-</details>
-
-<details>
-<summary>Bugs & Debugs</summary>
-</details>
-
----
-
-### TASK-4 — Mixed-Signal Integration and Final RTL-to-GDSII
-
-<details>
-<summary>Task & Concept Clarity</summary>
-</details>
-
-<details>
-<summary>Prompts</summary>
-</details>
-
-<details>
-<summary>Practical Implementation</summary>
-</details>
-
-<details>
-<summary>Bugs & Debugs</summary>
-</details>
-
 
 ---
 
